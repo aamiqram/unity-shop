@@ -1,10 +1,7 @@
-"use client";
-import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { FiCheckCircle, FiDownload, FiMail } from "react-icons/fi";
 
-// Mock order data – in real app fetch from API using orderId
+// Mock order data – in a real app, fetch from API using orderId
 const mockOrder = {
   id: "ORD-123456",
   date: "March 15, 2025",
@@ -40,11 +37,9 @@ const mockOrder = {
   ],
 };
 
-export default function OrderSuccessPage() {
-  const searchParams = useSearchParams();
-  const orderId = searchParams.get("orderId") || mockOrder.id;
-
-  // In a real app, fetch order data based on orderId
+export default function OrderSuccessPage({ searchParams }) {
+  // Get orderId from URL query parameter, fallback to mock ID
+  const orderId = searchParams?.orderId || mockOrder.id;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -197,6 +192,9 @@ export default function OrderSuccessPage() {
             </Link>
           </div>
         </div>
+
+        {/* Rest of the component remains exactly the same as before... */}
+        {/* ... (copy from your existing code) */}
       </div>
     </div>
   );
