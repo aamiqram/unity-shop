@@ -99,7 +99,7 @@ export default function Navbar() {
           <Link href="/" className="flex items-center space-x-2">
             <div className="relative w-8 h-8 md:w-10 md:h-10">
               <Image
-                src="/logo.svg" // You'll need to add a logo
+                src="/public/globe.svg" // You'll need to add a logo
                 alt="Unity Shop"
                 fill
                 className="object-contain"
