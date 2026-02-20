@@ -11,7 +11,7 @@ const inter = Inter({
 });
 
 export const metadata = {
-  metadataBase: new URL("https://your-domain.com"),
+  metadataBase: new URL("https://unity-shop.vercel.app"),
   title: "Unity Shop - Global B2B Marketplace",
   description:
     "Connect with verified suppliers worldwide. Trade with confidence.",
