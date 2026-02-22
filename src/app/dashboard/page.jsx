@@ -1,210 +1,336 @@
+// app/dashboard/page.jsx
 "use client";
-import Link from "next/link";
-import {
-  FiPackage,
-  FiHeart,
-  FiMapPin,
-  FiCreditCard,
-  FiUser,
-  FiMessageSquare,
-  FiStar,
-  FiHelpCircle,
-  FiBell,
-  FiGift,
-} from "react-icons/fi";
 
-// Mock data
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import { FiPackage, FiClock, FiHeart, FiAward } from "react-icons/fi";
+import { demoProducts } from "@/lib/demoProducts";
+
+// Mock user data
 const user = {
   name: "John Doe",
-  avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100",
-  memberSince: "2023",
+  email: "john.doe@example.com",
+  avatar: "https://via.placeholder.com/100x100?text=JD",
+  memberSince: "January 2024",
   stats: {
-    totalOrders: 24,
-    pendingOrders: 3,
-    wishlistItems: 12,
+    totalOrders: 12,
+    pendingOrders: 2,
+    wishlistItems: 8,
     rewardPoints: 1250,
   },
-  recentOrders: [
-    {
-      id: "ORD-123",
-      date: "Mar 15, 2025",
-      product: "Wireless Earbuds",
-      image:
-        "https://images.unsplash.com/photo-1606741965583-5c4b0a5e4b0a?w=100",
-      total: 59.98,
-      status: "Delivered",
-    },
-    // ... more
-  ],
-  wishlist: [
-    /* ... */
-  ],
-  notifications: [
-    { id: 1, text: "Your order #ORD-124 has shipped", time: "2 hours ago" },
-  ],
 };
 
+// Mock recent orders
+const recentOrders = [
+  {
+    id: "ORD-2024-001",
+    date: "2024-02-20",
+    status: "Delivered",
+    total: 156.47,
+    items: [
+      {
+        id: 1,
+        title: "Wireless Earbuds",
+        image:
+          "https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=100&auto=format",
+      },
+    ],
+  },
+  {
+    id: "ORD-2024-002",
+    date: "2024-02-18",
+    status: "Shipped",
+    total: 89.99,
+    items: [
+      {
+        id: 2,
+        title: "Water Bottle",
+        image:
+          "https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=100&auto=format",
+      },
+    ],
+  },
+  {
+    id: "ORD-2024-003",
+    date: "2024-02-15",
+    status: "Processing",
+    total: 45.5,
+    items: [
+      {
+        id: 3,
+        title: "Yoga Mat",
+        image:
+          "https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f?w=100&auto=format",
+      },
+    ],
+  },
+];
+
+// Mock wishlist items (first 4 from demoProducts)
+const wishlistItems = demoProducts.slice(0, 4);
+
+// Mock notifications
+const notifications = [
+  {
+    id: 1,
+    type: "order",
+    message: "Order #ORD-2024-001 has been delivered.",
+    time: "2 hours ago",
+    read: false,
+  },
+  {
+    id: 2,
+    type: "price",
+    message: "Price drop on 'Wireless Earbuds' – now $24.99",
+    time: "1 day ago",
+    read: true,
+  },
+  {
+    id: 3,
+    type: "message",
+    message: "New message from Shenzhen Tech Co.",
+    time: "2 days ago",
+    read: false,
+  },
+];
+
 export default function DashboardPage() {
+  const [greeting, setGreeting] = useState("");
+
+  useEffect(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) setGreeting("Good morning");
+    else if (hour < 18) setGreeting("Good afternoon");
+    else setGreeting("Good evening");
+  }, []);
+
   return (
-    <div className="flex">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white border-r min-h-screen hidden md:block">
-        <div className="p-6">
-          <div className="flex items-center space-x-3 mb-6">
-            <img src={user.avatar} alt="" className="w-12 h-12 rounded-full" />
+    <DashboardLayout>
+      {/* Welcome section */}
+      <div className="mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
+          {greeting}, {user.name}!
+        </h1>
+        <p className="text-gray-600">Member since {user.memberSince}</p>
+      </div>
+
+      {/* Quick stats cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-100 rounded-full">
+              <FiPackage className="text-blue-600" size={20} />
+            </div>
             <div>
-              <p className="font-semibold">{user.name}</p>
-              <p className="text-xs text-gray-500">
-                Member since {user.memberSince}
-              </p>
+              <p className="text-sm text-gray-500">Total Orders</p>
+              <p className="text-xl font-bold">{user.stats.totalOrders}</p>
             </div>
           </div>
-          <nav className="space-y-1">
-            {[
-              {
-                href: "/dashboard",
-                label: "Dashboard",
-                icon: FiPackage,
-                active: true,
-              },
-              {
-                href: "/dashboard/orders",
-                label: "My Orders",
-                icon: FiPackage,
-              },
-              { href: "/dashboard/wishlist", label: "Wishlist", icon: FiHeart },
-              {
-                href: "/dashboard/addresses",
-                label: "Addresses",
-                icon: FiMapPin,
-              },
-              {
-                href: "/dashboard/payment",
-                label: "Payment Methods",
-                icon: FiCreditCard,
-              },
-              { href: "/dashboard/profile", label: "Profile", icon: FiUser },
-              { href: "/messages", label: "Messages", icon: FiMessageSquare },
-              { href: "/dashboard/reviews", label: "Reviews", icon: FiStar },
-              { href: "/support", label: "Support", icon: FiHelpCircle },
-            ].map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center space-x-3 px-4 py-2 rounded-lg ${
-                  item.active ? "bg-orange/10 text-orange" : "hover:bg-gray-100"
-                }`}
-              >
-                <item.icon />
-                <span>{item.label}</span>
-              </Link>
-            ))}
-          </nav>
         </div>
-      </aside>
-
-      {/* Main content */}
-      <main className="flex-1 p-6">
-        {/* Welcome */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold">Welcome back, {user.name}!</h1>
-        </div>
-
-        {/* Stats cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          {[
-            { label: "Total Orders", value: user.stats.totalOrders },
-            {
-              label: "Pending Orders",
-              value: user.stats.pendingOrders,
-              badge: true,
-            },
-            { label: "Wishlist Items", value: user.stats.wishlistItems },
-            { label: "Reward Points", value: user.stats.rewardPoints },
-          ].map((stat) => (
-            <div key={stat.label} className="bg-white p-4 rounded-lg border">
-              <p className="text-sm text-gray-500">{stat.label}</p>
-              <p className="text-2xl font-bold">{stat.value}</p>
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-yellow-100 rounded-full">
+              <FiClock className="text-yellow-600" size={20} />
             </div>
-          ))}
+            <div>
+              <p className="text-sm text-gray-500">Pending</p>
+              <p className="text-xl font-bold">{user.stats.pendingOrders}</p>
+            </div>
+          </div>
         </div>
-
-        {/* Recent orders */}
-        <section className="mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">Recent Orders</h2>
-            <Link
-              href="/dashboard/orders"
-              className="text-orange text-sm hover:underline"
-            >
-              View All
-            </Link>
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-red-100 rounded-full">
+              <FiHeart className="text-red-600" size={20} />
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Wishlist</p>
+              <p className="text-xl font-bold">{user.stats.wishlistItems}</p>
+            </div>
           </div>
-          <div className="bg-white rounded-lg border overflow-hidden">
-            {user.recentOrders.map((order) => (
-              <div
-                key={order.id}
-                className="flex items-center p-4 border-b last:border-0"
-              >
-                <img
-                  src={order.image}
-                  alt=""
-                  className="w-12 h-12 object-cover rounded mr-4"
-                />
-                <div className="flex-1">
-                  <p className="font-medium">{order.product}</p>
-                  <p className="text-xs text-gray-500">{order.date}</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-semibold">${order.total.toFixed(2)}</p>
-                  <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded">
-                    {order.status}
-                  </span>
-                </div>
-              </div>
-            ))}
+        </div>
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-green-100 rounded-full">
+              <FiAward className="text-green-600" size={20} />
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Points</p>
+              <p className="text-xl font-bold">{user.stats.rewardPoints}</p>
+            </div>
           </div>
-        </section>
+        </div>
+      </div>
 
+      {/* Recent orders */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-semibold">Recent Orders</h2>
+          <Link
+            href="/dashboard/orders"
+            className="text-sm text-[#FF6600] hover:underline"
+          >
+            View All
+          </Link>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="border-b border-gray-200">
+              <tr>
+                <th className="text-left py-2">Order</th>
+                <th className="text-left py-2">Date</th>
+                <th className="text-left py-2">Status</th>
+                <th className="text-right py-2">Total</th>
+                <th className="text-right py-2">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {recentOrders.map((order) => (
+                <tr key={order.id} className="border-b border-gray-100">
+                  <td className="py-3">
+                    <div className="flex items-center gap-2">
+                      {order.items[0] && (
+                        <div className="w-8 h-8 relative">
+                          <Image
+                            src={order.items[0].image}
+                            alt={order.items[0].title}
+                            fill
+                            className="object-cover rounded"
+                          />
+                        </div>
+                      )}
+                      <span className="font-mono text-xs">{order.id}</span>
+                    </div>
+                  </td>
+                  <td className="py-3">
+                    {new Date(order.date).toLocaleDateString()}
+                  </td>
+                  <td className="py-3">
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs ${
+                        order.status === "Delivered"
+                          ? "bg-green-100 text-green-800"
+                          : order.status === "Shipped"
+                            ? "bg-blue-100 text-blue-800"
+                            : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
+                      {order.status}
+                    </span>
+                  </td>
+                  <td className="py-3 text-right">${order.total.toFixed(2)}</td>
+                  <td className="py-3 text-right">
+                    <div className="flex gap-2 justify-end">
+                      <Link
+                        href={`/orders/${order.id}/track`}
+                        className="text-xs text-[#FF6600] hover:underline"
+                      >
+                        Track
+                      </Link>
+                      <Link
+                        href={`/orders/${order.id}`}
+                        className="text-xs text-gray-500 hover:underline"
+                      >
+                        Details
+                      </Link>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Two column layout for wishlist and notifications */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Wishlist preview */}
-        <section className="mb-8">
-          <div className="flex justify-between items-center mb-4">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-semibold">Your Wishlist</h2>
             <Link
               href="/dashboard/wishlist"
-              className="text-orange text-sm hover:underline"
+              className="text-sm text-[#FF6600] hover:underline"
             >
               View All
             </Link>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="border rounded p-2">
-                <div className="h-24 bg-gray-200 mb-2"></div>
-                <div className="h-4 bg-gray-200 w-3/4 mb-1"></div>
-                <div className="h-4 bg-gray-200 w-1/2"></div>
-              </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {wishlistItems.map((item) => (
+              <Link
+                key={item.id}
+                href={`/products/${item.id}/${item.slug}`}
+                className="group"
+              >
+                <div className="aspect-square relative bg-gray-100 rounded overflow-hidden mb-1">
+                  <Image
+                    src={item.image}
+                    alt={item.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform"
+                  />
+                </div>
+                <p className="text-xs truncate">{item.title}</p>
+                <p className="text-xs font-semibold text-[#FF6600]">
+                  ${item.priceMin}
+                </p>
+              </Link>
             ))}
           </div>
-        </section>
+        </div>
 
         {/* Notifications */}
-        <section>
-          <h2 className="text-lg font-semibold mb-4">Recent Updates</h2>
-          <div className="bg-white rounded-lg border p-4">
-            {user.notifications.map((n) => (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <h2 className="text-lg font-semibold mb-3">Notifications</h2>
+          <div className="space-y-3">
+            {notifications.map((note) => (
               <div
-                key={n.id}
-                className="flex items-center py-2 border-b last:border-0"
+                key={note.id}
+                className={`flex items-start gap-2 text-sm p-2 rounded ${
+                  !note.read ? "bg-blue-50" : ""
+                }`}
               >
-                <FiBell className="text-orange mr-3" />
-                <span className="flex-1 text-sm">{n.text}</span>
-                <span className="text-xs text-gray-400">{n.time}</span>
+                <div
+                  className={`w-2 h-2 rounded-full mt-1.5 ${
+                    !note.read ? "bg-[#FF6600]" : "bg-gray-300"
+                  }`}
+                />
+                <div className="flex-1">
+                  <p className="text-gray-700">{note.message}</p>
+                  <p className="text-xs text-gray-400">{note.time}</p>
+                </div>
               </div>
             ))}
           </div>
-        </section>
-      </main>
-    </div>
+        </div>
+      </div>
+
+      {/* Recommendations */}
+      <div className="mt-6">
+        <h2 className="text-lg font-semibold mb-3">Recommended for You</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
+          {demoProducts.slice(4, 9).map((product) => (
+            <Link
+              key={product.id}
+              href={`/products/${product.id}/${product.slug}`}
+              className="bg-white border border-gray-200 rounded-lg p-2 hover:shadow-md transition"
+            >
+              <div className="aspect-square relative bg-gray-100 rounded mb-2">
+                <Image
+                  src={product.image}
+                  alt={product.title}
+                  fill
+                  className="object-cover rounded"
+                />
+              </div>
+              <p className="text-xs truncate">{product.title}</p>
+              <p className="text-xs font-semibold">${product.priceMin}</p>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </DashboardLayout>
   );
 }

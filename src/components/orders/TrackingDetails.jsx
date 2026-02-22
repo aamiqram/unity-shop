@@ -1,61 +1,66 @@
-import Image from "next/image";
-import Link from "next/link";
-import { FiMapPin, FiPackage, FiMessageSquare } from "react-icons/fi";
+// components/orders/TrackingDetails.jsx
+import { FiPackage, FiMapPin, FiClock } from "react-icons/fi";
 
-export default function TrackingDetails({ address, items }) {
+const TrackingDetails = ({ order }) => {
   return (
-    <div className="space-y-6">
-      {/* Delivery address */}
-      <div className="bg-white p-6 rounded-lg border">
-        <div className="flex items-center mb-3">
-          <FiMapPin className="text-orange mr-2" />
-          <h3 className="font-semibold">Delivery Address</h3>
-        </div>
-        <p className="text-sm">
-          {address.name}
-          <br />
-          {address.line1}
-          {address.line2 && `, ${address.line2}`}
-          <br />
-          {address.city}, {address.state} {address.zip}
-          <br />
-          {address.country}
-        </p>
-      </div>
+    <div className="bg-white border border-gray-200 rounded-lg p-4">
+      <h3 className="font-semibold mb-3">Tracking Details</h3>
 
-      {/* Items in this order */}
-      <div className="bg-white p-6 rounded-lg border">
-        <div className="flex items-center mb-3">
-          <FiPackage className="text-orange mr-2" />
-          <h3 className="font-semibold">Items in this Order</h3>
+      <div className="space-y-3">
+        <div className="flex items-start gap-3">
+          <FiPackage className="text-gray-400 mt-1" size={18} />
+          <div>
+            <p className="text-sm text-gray-500">Tracking Number</p>
+            <p className="font-mono font-medium">
+              {order.trackingNumber || "Not yet available"}
+            </p>
+            {order.trackingNumber && (
+              <a
+                href={`https://www.carrier.com/track?number=${order.trackingNumber}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-[#FF6600] hover:underline"
+              >
+                Track with carrier
+              </a>
+            )}
+          </div>
         </div>
-        <div className="space-y-3">
-          {items.map((item, idx) => (
-            <div key={idx} className="flex items-center">
-              <img
-                src={item.image}
-                alt={item.name}
-                className="w-12 h-12 object-cover rounded mr-3"
-              />
-              <div className="flex-1">
-                <p className="text-sm font-medium line-clamp-2">{item.name}</p>
-                <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
 
-      {/* Contact seller button */}
-      <div className="bg-white p-6 rounded-lg border">
-        <h3 className="font-semibold mb-3">Need Help?</h3>
-        <button className="w-full bg-orange text-white py-2 rounded-lg flex items-center justify-center hover:bg-orange/90">
-          <FiMessageSquare className="mr-2" /> Contact Seller
-        </button>
-        <button className="w-full border border-gray-300 py-2 rounded-lg mt-2 hover:bg-gray-50">
-          Report a Problem
-        </button>
+        <div className="flex items-start gap-3">
+          <FiMapPin className="text-gray-400 mt-1" size={18} />
+          <div>
+            <p className="text-sm text-gray-500">Shipping Address</p>
+            <p className="text-sm">
+              {order.shippingAddress.name}
+              <br />
+              {order.shippingAddress.line1}
+              {order.shippingAddress.line2 &&
+                `, ${order.shippingAddress.line2}`}
+              <br />
+              {order.shippingAddress.city}, {order.shippingAddress.state}{" "}
+              {order.shippingAddress.zip}
+              <br />
+              {order.shippingAddress.country}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-start gap-3">
+          <FiClock className="text-gray-400 mt-1" size={18} />
+          <div>
+            <p className="text-sm text-gray-500">Estimated Delivery</p>
+            <p className="text-sm font-medium">{order.estimatedDelivery}</p>
+            {order.deliveryDate && (
+              <p className="text-xs text-green-600">
+                Delivered on {order.deliveryDate}
+              </p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
-}
+};
+
+export default TrackingDetails;

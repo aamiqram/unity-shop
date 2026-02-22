@@ -1,171 +1,160 @@
+// components/checkout/OrderReview.jsx
 "use client";
-import { useState } from "react";
-import Link from "next/link";
-import { FiEdit2, FiCheck } from "react-icons/fi";
 
-export default function OrderReview({
-  shippingData,
-  paymentData,
-  cart,
+import { useState } from "react";
+import { useCart } from "@/context/CartContext";
+import { useRouter } from "next/navigation";
+
+const OrderReview = ({
+  shippingInfo,
+  paymentMethod,
+  billingSameAsShipping,
   onBack,
   onPlaceOrder,
-}) {
+}) => {
+  const { cartItems, cartTotal } = useCart();
+  const router = useRouter();
   const [termsAccepted, setTermsAccepted] = useState(false);
 
+  const shipping = 5.99;
+  const tax = cartTotal * 0.1;
+  const grandTotal = cartTotal + shipping + tax;
+
+  const handlePlaceOrder = () => {
+    if (!termsAccepted) return;
+    onPlaceOrder();
+    // In real app, send order to backend
+    // Then redirect to confirmation page
+    router.push("/order/success");
+  };
+
   return (
-    <div className="bg-white p-6 rounded-lg border">
-      <h2 className="text-xl font-bold mb-4">Review Your Order</h2>
+    <div>
+      <h2 className="text-xl font-semibold mb-4">Review Your Order</h2>
 
-      {/* Shipping address review */}
+      {/* Order items summary */}
       <div className="mb-6">
-        <div className="flex justify-between items-center mb-2">
-          <h3 className="font-semibold">Shipping Address</h3>
-          <button
-            onClick={onBack}
-            className="text-orange text-sm flex items-center"
-          >
-            <FiEdit2 className="mr-1" /> Edit
-          </button>
-        </div>
-        <div className="bg-gray-50 p-4 rounded">
-          <p className="font-medium">{shippingData?.name}</p>
-          <p className="text-sm text-gray-600">{shippingData?.phone}</p>
-          <p className="text-sm text-gray-600">
-            {shippingData?.line1}
-            {shippingData?.line2 && `, ${shippingData.line2}`}
-            <br />
-            {shippingData?.city}, {shippingData?.state} {shippingData?.zip}
-            <br />
-            {shippingData?.country}
-          </p>
-        </div>
-      </div>
-
-      {/* Payment method review */}
-      <div className="mb-6">
-        <div className="flex justify-between items-center mb-2">
-          <h3 className="font-semibold">Payment Method</h3>
-          <button
-            onClick={onBack}
-            className="text-orange text-sm flex items-center"
-          >
-            <FiEdit2 className="mr-1" /> Edit
-          </button>
-        </div>
-        <div className="bg-gray-50 p-4 rounded">
-          {paymentData?.method === "card" && (
-            <>
-              <p className="font-medium">Credit Card</p>
-              <p className="text-sm text-gray-600">
-                **** **** **** {paymentData.number?.slice(-4)}
-                <br />
-                Expires: {paymentData.expiry}
-              </p>
-            </>
-          )}
-          {paymentData?.method === "paypal" && <p>PayPal</p>}
-          {paymentData?.method === "bank" && <p>Bank Transfer</p>}
-          {paymentData?.method === "cod" && <p>Cash on Delivery</p>}
-        </div>
-      </div>
-
-      {/* Items review */}
-      <div className="mb-6">
-        <h3 className="font-semibold mb-2">Items</h3>
-        <div className="space-y-3">
-          {cart.items.map((item) => (
+        <h3 className="font-medium mb-2">Items ({cartItems.length})</h3>
+        <div className="space-y-2 max-h-60 overflow-y-auto">
+          {cartItems.map((item) => (
             <div
-              key={item.id}
-              className="flex justify-between items-center border-b pb-2"
+              key={`${item.id}-${item.selectedVariant}`}
+              className="flex items-center gap-2 text-sm"
             >
-              <div className="flex items-center">
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="w-12 h-12 object-cover rounded mr-3"
-                />
-                <div>
-                  <p className="font-medium">{item.name}</p>
-                  <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
-                </div>
-              </div>
-              <span className="font-semibold">
-                ${(item.price * item.quantity).toFixed(2)}
-              </span>
+              <span className="w-5 text-gray-500">{item.quantity}x</span>
+              <span className="flex-1 line-clamp-1">{item.title}</span>
+              <span>${(item.priceMin * item.quantity).toFixed(2)}</span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Order totals */}
-      <div className="bg-gray-50 p-4 rounded mb-6">
-        <div className="space-y-2 text-sm">
+      {/* Shipping address */}
+      <div className="mb-4">
+        <h3 className="font-medium mb-1">Shipping Address</h3>
+        <p className="text-sm text-gray-600">
+          {shippingInfo.name}
+          <br />
+          {shippingInfo.addressLine1}
+          {shippingInfo.addressLine2 && `, ${shippingInfo.addressLine2}`}
+          <br />
+          {shippingInfo.city}, {shippingInfo.state} {shippingInfo.zip}
+          <br />
+          {shippingInfo.country}
+          <br />
+          Phone: {shippingInfo.phone}
+        </p>
+        <button className="text-xs text-[#FF6600] mt-1 hover:underline">
+          Edit
+        </button>
+      </div>
+
+      {/* Payment method */}
+      <div className="mb-4">
+        <h3 className="font-medium mb-1">Payment Method</h3>
+        <p className="text-sm text-gray-600">
+          {paymentMethod === "card" && "Credit / Debit Card"}
+          {paymentMethod === "paypal" && "PayPal"}
+          {paymentMethod === "bank" && "Bank Transfer"}
+          {paymentMethod === "cod" && "Cash on Delivery"}
+        </p>
+        <button className="text-xs text-[#FF6600] mt-1 hover:underline">
+          Edit
+        </button>
+      </div>
+
+      {/* Billing address */}
+      <div className="mb-6">
+        <h3 className="font-medium mb-1">Billing Address</h3>
+        <p className="text-sm text-gray-600">
+          {billingSameAsShipping
+            ? "Same as shipping address"
+            : "Separate billing address (not implemented in demo)"}
+        </p>
+        <button className="text-xs text-[#FF6600] mt-1 hover:underline">
+          Edit
+        </button>
+      </div>
+
+      {/* Order total breakdown */}
+      <div className="border-t border-gray-200 pt-4">
+        <div className="space-y-1 text-sm">
           <div className="flex justify-between">
             <span>Subtotal</span>
-            <span>${cart.subtotal.toFixed(2)}</span>
+            <span>${cartTotal.toFixed(2)}</span>
           </div>
           <div className="flex justify-between">
             <span>Shipping</span>
-            <span>${cart.shipping.toFixed(2)}</span>
+            <span>${shipping.toFixed(2)}</span>
           </div>
           <div className="flex justify-between">
             <span>Tax</span>
-            <span>${cart.tax.toFixed(2)}</span>
+            <span>${tax.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between font-bold text-lg pt-2 border-t">
-            <span>Total</span>
-            <span className="text-orange">${cart.total.toFixed(2)}</span>
+          <div className="flex justify-between font-semibold text-base pt-2 border-t border-gray-200">
+            <span>Grand Total</span>
+            <span className="text-[#FF6600]">${grandTotal.toFixed(2)}</span>
           </div>
         </div>
       </div>
 
-      {/* Terms & conditions */}
-      <label className="flex items-start space-x-2 mb-6">
-        <input
-          type="checkbox"
-          checked={termsAccepted}
-          onChange={(e) => setTermsAccepted(e.target.checked)}
-          className="mt-1 accent-orange"
-        />
-        <span className="text-sm text-gray-600">
-          I have read and agree to the{" "}
-          <Link href="/terms" className="text-orange hover:underline">
-            Terms & Conditions
-          </Link>{" "}
-          and{" "}
-          <Link href="/privacy" className="text-orange hover:underline">
+      {/* Terms and conditions */}
+      <div className="mt-4">
+        <label className="flex items-center text-sm">
+          <input
+            type="checkbox"
+            checked={termsAccepted}
+            onChange={(e) => setTermsAccepted(e.target.checked)}
+            className="mr-2"
+          />
+          I agree to the{" "}
+          <a href="/terms" className="text-[#FF6600] hover:underline mx-1">
+            Terms and Conditions
+          </a>
+          and
+          <a href="/privacy" className="text-[#FF6600] hover:underline mx-1">
             Privacy Policy
-          </Link>
-          .
-        </span>
-      </label>
+          </a>
+        </label>
+      </div>
 
-      {/* Action buttons */}
-      <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
-        <button
-          onClick={onPlaceOrder}
-          disabled={!termsAccepted}
-          className={`flex-1 py-3 rounded-lg font-semibold ${
-            termsAccepted
-              ? "bg-orange text-white hover:bg-orange/90"
-              : "bg-gray-300 text-gray-500 cursor-not-allowed"
-          }`}
-        >
-          Place Order
-        </button>
+      <div className="flex justify-between mt-6">
         <button
           onClick={onBack}
-          className="border border-gray-300 py-3 px-6 rounded-lg hover:bg-gray-50"
+          className="px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
         >
           Back
         </button>
-      </div>
-
-      {/* Trust badge */}
-      <div className="mt-4 text-center text-xs text-gray-500 flex items-center justify-center">
-        <FiCheck className="text-green-600 mr-1" /> Your order is secure and
-        encrypted
+        <button
+          onClick={handlePlaceOrder}
+          disabled={!termsAccepted}
+          className="px-8 py-3 bg-[#FF6600] text-white rounded-md font-medium hover:bg-[#e65c00] disabled:opacity-50"
+        >
+          Place Order
+        </button>
       </div>
     </div>
   );
-}
+};
+
+export default OrderReview;

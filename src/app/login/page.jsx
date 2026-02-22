@@ -1,119 +1,259 @@
+// app/login/page.jsx
 "use client";
-import Link from "next/link";
+
 import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
+import { FaGoogle, FaFacebookF, FaApple } from "react-icons/fa";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    rememberMe: false,
+  });
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [loginError, setLoginError] = useState("");
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+    // Clear field-specific error when user types
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+    setLoginError("");
+  };
+
+  const validate = () => {
+    const newErrors = {};
+    if (!formData.email) {
+      newErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = "Email is invalid";
+    }
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    } else if (formData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    }
+    return newErrors;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    setIsLoading(true);
+    setLoginError("");
+
+    // Simulate API call
+    setTimeout(() => {
+      // For demo, accept any email/password that passes validation
+      // In a real app, you'd call your auth endpoint
+      setIsLoading(false);
+      // Redirect to dashboard or home
+      router.push("/dashboard");
+    }, 1500);
+  };
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left side - branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-orange to-orange/70 text-white flex-col justify-center items-center p-12">
-        <h1 className="text-4xl font-bold mb-4">Welcome Back!</h1>
-        <p className="text-xl mb-8">
-          Sign in to access your orders, wishlist, and more.
-        </p>
-        <ul className="space-y-4 text-lg">
-          <li>✓ Track your orders in real-time</li>
-          <li>✓ Manage your wishlist</li>
-          <li>✓ Exclusive member deals</li>
-        </ul>
+    <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
+      {/* Left side - Branding */}
+      <div className="lg:w-1/2 bg-gradient-to-br from-[#FF6600] to-orange-600 p-8 lg:p-12 flex flex-col justify-center items-center text-white">
+        <div className="max-w-md">
+          <h1 className="text-4xl lg:text-5xl font-bold mb-4">Welcome Back!</h1>
+          <p className="text-lg mb-8 text-orange-100">
+            Access your orders, track shipments, and manage your wishlist with
+            Unity Shop.
+          </p>
+          <ul className="space-y-3 text-orange-100">
+            <li className="flex items-center gap-2">
+              <span className="text-white">✓</span> Access your order history
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="text-white">✓</span> Track shipments in real time
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="text-white">✓</span> Manage your wishlist
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="text-white">✓</span> Exclusive member deals
+            </li>
+          </ul>
+        </div>
       </div>
 
-      {/* Right side - form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
-        <div className="max-w-md w-full">
-          <h2 className="text-3xl font-bold mb-2">Sign In</h2>
-          <p className="text-gray-500 mb-6">
-            New to Unity Shop?{" "}
-            <Link href="/register" className="text-orange">
-              Create account
-            </Link>
-          </p>
+      {/* Right side - Login form */}
+      <div className="lg:w-1/2 flex items-center justify-center p-8 lg:p-12">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-800">Sign In</h2>
+            <p className="text-gray-600 mt-2">
+              New to Unity Shop?{" "}
+              <Link
+                href="/register"
+                className="text-[#FF6600] hover:underline font-medium"
+              >
+                Create account
+              </Link>
+            </p>
+          </div>
 
-          <form className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Email field */}
             <div>
-              <label className="block text-sm font-medium mb-1">Email</label>
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Email Address
+              </label>
               <div className="relative">
-                <FiMail className="absolute left-3 top-3 text-gray-400" />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FiMail className="text-gray-400" size={18} />
+                </div>
                 <input
                   type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-orange"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
                   placeholder="you@example.com"
+                  className={`w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-1 ${
+                    errors.email
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-gray-300 focus:ring-[#FF6600] focus:border-[#FF6600]"
+                  }`}
                 />
               </div>
+              {errors.email && (
+                <p className="mt-1 text-xs text-red-500">{errors.email}</p>
+              )}
             </div>
 
+            {/* Password field */}
             <div>
-              <label className="block text-sm font-medium mb-1">Password</label>
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Password
+              </label>
               <div className="relative">
-                <FiLock className="absolute left-3 top-3 text-gray-400" />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FiLock className="text-gray-400" size={18} />
+                </div>
                 <input
                   type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-orange"
+                  id="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                  className={`w-full pl-10 pr-10 py-2 border rounded-md focus:outline-none focus:ring-1 ${
+                    errors.password
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-gray-300 focus:ring-[#FF6600] focus:border-[#FF6600]"
+                  }`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-gray-400"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
                 >
-                  {showPassword ? <FiEyeOff /> : <FiEye />}
+                  {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
                 </button>
               </div>
+              {errors.password && (
+                <p className="mt-1 text-xs text-red-500">{errors.password}</p>
+              )}
             </div>
 
+            {/* Remember me & Forgot password */}
             <div className="flex items-center justify-between">
-              <label className="flex items-center">
-                <input type="checkbox" className="accent-orange" />{" "}
-                <span className="ml-2 text-sm">Remember me</span>
+              <label className="flex items-center text-sm text-gray-600">
+                <input
+                  type="checkbox"
+                  name="rememberMe"
+                  checked={formData.rememberMe}
+                  onChange={handleChange}
+                  className="mr-2 rounded border-gray-300 text-[#FF6600] focus:ring-[#FF6600]"
+                />
+                Remember me
               </label>
               <Link
                 href="/forgot-password"
-                className="text-sm text-orange hover:underline"
+                className="text-sm text-[#FF6600] hover:underline"
               >
                 Forgot password?
               </Link>
             </div>
 
+            {/* Error message */}
+            {loginError && (
+              <div className="p-2 bg-red-50 border border-red-200 rounded text-sm text-red-600">
+                {loginError}
+              </div>
+            )}
+
+            {/* Submit button */}
             <button
               type="submit"
-              className="w-full bg-orange text-white py-3 rounded-lg font-semibold hover:bg-orange/90"
+              disabled={isLoading}
+              className="w-full py-2.5 px-4 bg-[#FF6600] hover:bg-[#e65c00] text-white font-medium rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Sign In
+              {isLoading ? "Signing in..." : "Sign In"}
             </button>
           </form>
 
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">
-                  Or continue with
-                </span>
-              </div>
+          {/* Divider */}
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
             </div>
-
-            <div className="mt-4 grid grid-cols-3 gap-3">
-              <button className="border rounded-lg py-2 hover:bg-gray-50">
-                Google
-              </button>
-              <button className="border rounded-lg py-2 hover:bg-gray-50">
-                Facebook
-              </button>
-              <button className="border rounded-lg py-2 hover:bg-gray-50">
-                Apple
-              </button>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">
+                Or continue with
+              </span>
             </div>
           </div>
+
+          {/* Social login */}
+          <div className="grid grid-cols-3 gap-3">
+            <button className="flex items-center justify-center py-2 px-4 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
+              <FaGoogle className="text-red-500" size={18} />
+            </button>
+            <button className="flex items-center justify-center py-2 px-4 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
+              <FaFacebookF className="text-blue-600" size={18} />
+            </button>
+            <button className="flex items-center justify-center py-2 px-4 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
+              <FaApple className="text-gray-800" size={18} />
+            </button>
+          </div>
+
+          {/* Security note */}
+          <p className="text-xs text-center text-gray-400 mt-6">
+            By signing in, you agree to our{" "}
+            <Link href="/terms" className="text-[#FF6600] hover:underline">
+              Terms of Service
+            </Link>{" "}
+            and{" "}
+            <Link href="/privacy" className="text-[#FF6600] hover:underline">
+              Privacy Policy
+            </Link>
+          </p>
         </div>
       </div>
     </div>

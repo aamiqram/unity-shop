@@ -1,58 +1,71 @@
-import { FiShield, FiCreditCard, FiCheckCircle, FiTruck } from "react-icons/fi";
+// components/home/TradeAssuranceBanner.jsx
+import { FiShield, FiLock, FiCheckCircle, FiTruck } from "react-icons/fi";
 
-const features = [
-  {
-    icon: FiShield,
-    title: "Verified Suppliers",
-    description: "All suppliers are verified by third-party agencies.",
-  },
-  {
-    icon: FiCreditCard,
-    title: "Secure Payments",
-    description: "Your payments are protected until you confirm receipt.",
-  },
-  {
-    icon: FiCheckCircle,
-    title: "Quality Guaranteed",
-    description: "Inspection services ensure product quality.",
-  },
-  {
-    icon: FiTruck,
-    title: "On-time Shipping",
-    description: "Guaranteed shipping schedules and tracking.",
-  },
-];
+const TradeAssuranceBanner = () => {
+  const features = [
+    {
+      icon: <FiShield size={32} className="text-[#FF6600]" />,
+      title: "Verified Suppliers",
+      description:
+        "Every supplier is thoroughly vetted and verified by our team.",
+    },
+    {
+      icon: <FiLock size={32} className="text-[#FF6600]" />,
+      title: "Secure Payments",
+      description:
+        "Your transactions are protected with bank-level encryption.",
+    },
+    {
+      icon: <FiCheckCircle size={32} className="text-[#FF6600]" />,
+      title: "Quality Guaranteed",
+      description: "Inspection services ensure you get what you ordered.",
+    },
+    {
+      icon: <FiTruck size={32} className="text-[#FF6600]" />,
+      title: "On-time Shipping",
+      description: "Guaranteed shipping schedules with real-time tracking.",
+    },
+  ];
 
-export default function TradeAssuranceBanner() {
   return (
-    <section className="bg-gradient-to-r from-blue-50 to-blue-100 py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-10">
-          Trade with Confidence
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {features.map((feature, idx) => {
-            const Icon = feature.icon;
-            return (
-              <div
-                key={idx}
-                className="flex flex-col items-center text-center p-6 bg-white rounded-lg shadow-sm"
-              >
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-                  <Icon className="text-3xl text-blue-600" />
-                </div>
-                <h3 className="font-semibold text-lg mb-2">{feature.title}</h3>
-                <p className="text-gray-600 text-sm">{feature.description}</p>
-              </div>
-            );
-          })}
+    <section className="bg-blue-50 py-12">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">
+            Trade with Confidence
+          </h2>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Unity Shop's Trade Assurance protects your orders from payment to
+            delivery.
+          </p>
         </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {features.map((feature, index) => (
+            <div
+              key={index}
+              className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow text-center"
+            >
+              <div className="flex justify-center mb-4">{feature.icon}</div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                {feature.title}
+              </h3>
+              <p className="text-sm text-gray-600">{feature.description}</p>
+            </div>
+          ))}
+        </div>
+
         <div className="text-center mt-8">
-          <button className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-md transition">
+          <a
+            href="/trade-assurance"
+            className="inline-flex items-center px-6 py-3 bg-[#FF6600] text-white font-medium rounded-md hover:bg-[#e65c00] transition-colors"
+          >
             Learn More About Trade Assurance
-          </button>
+          </a>
         </div>
       </div>
     </section>
   );
-}
+};
+
+export default TradeAssuranceBanner;

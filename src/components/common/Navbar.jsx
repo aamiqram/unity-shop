@@ -1,314 +1,570 @@
+// src/components/common/Navbar.jsx
 "use client";
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { usePathname } from "next/navigation";
 import {
-  FiGlobe,
+  FiSearch,
   FiUser,
   FiShoppingCart,
   FiBell,
-  FiSearch,
-  FiChevronDown,
+  FiGlobe,
   FiMenu,
   FiX,
+  FiChevronDown,
+  FiChevronRight,
 } from "react-icons/fi";
-import { usePathname } from "next/navigation";
 
-const categories = [
-  {
-    id: 1,
-    name: "Electronics",
-    icon: "📱",
-    image: "/images/cat-electronics.jpg",
-    subcategories: [
-      "Mobile Phones",
-      "Laptops",
-      "Cameras",
-      "Audio",
-      "Accessories",
-    ],
-  },
-  {
-    id: 2,
-    name: "Fashion",
-    icon: "👕",
-    image: "/images/cat-fashion.jpg",
-    subcategories: [
-      "Men's Clothing",
-      "Women's Clothing",
-      "Shoes",
-      "Bags",
-      "Watches",
-    ],
-  },
-  // Add more categories as needed
-];
-
-export default function Navbar() {
-  const [isScrolled, setIsScrolled] = useState(false);
+const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
-  const [activeCategory, setActiveCategory] = useState(null);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("All Categories");
   const [searchQuery, setSearchQuery] = useState("");
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [categoryFilter, setCategoryFilter] = useState("All Categories");
-  const pathname = usePathname();
-  const navbarRef = useRef(null);
-  const categoriesTimeout = useRef(null);
+  const [scrolled, setScrolled] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // Simulate login state
 
+  const categoriesRef = useRef(null);
+  const userMenuRef = useRef(null);
+  const searchRef = useRef(null);
+  const pathname = usePathname();
+
+  // Close dropdowns when clicking outside
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 10);
+    const handleClickOutside = (event) => {
+      if (
+        categoriesRef.current &&
+        !categoriesRef.current.contains(event.target)
+      ) {
+        setIsCategoriesOpen(false);
+      }
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setIsUserMenuOpen(false);
+      }
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setIsSearchFocused(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Handle scroll effect (optional sticky)
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Handle hover for mega menu
-  const handleCategoryHover = (category) => {
-    if (categoriesTimeout.current) clearTimeout(categoriesTimeout.current);
-    setActiveCategory(category);
-    setIsCategoriesOpen(true);
-  };
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [pathname]);
 
-  const handleCategoryLeave = () => {
-    categoriesTimeout.current = setTimeout(() => {
-      setIsCategoriesOpen(false);
-      setActiveCategory(null);
-    }, 200);
-  };
+  // Dummy categories data for mega menu
+  const categories = [
+    {
+      name: "Electronics",
+      icon: "📱",
+      subcategories: [
+        "Mobile Phones",
+        "Laptops & Computers",
+        "Cameras",
+        "Audio & Headphones",
+        "Wearable Technology",
+        "TV & Home Entertainment",
+        "Video Games",
+        "Electronic Components",
+      ],
+    },
+    {
+      name: "Fashion",
+      icon: "👕",
+      subcategories: [
+        "Men's Clothing",
+        "Women's Clothing",
+        "Kids' Fashion",
+        "Shoes",
+        "Bags & Accessories",
+        "Watches",
+        "Jewelry",
+        "Fashion Accessories",
+      ],
+    },
+    {
+      name: "Home & Garden",
+      icon: "🏠",
+      subcategories: [
+        "Furniture",
+        "Home Decor",
+        "Kitchen & Dining",
+        "Bedding & Linens",
+        "Bathroom",
+        "Garden & Outdoor",
+        "Tools & DIY",
+        "Lighting",
+      ],
+    },
+    {
+      name: "Health & Beauty",
+      icon: "💄",
+      subcategories: [
+        "Makeup",
+        "Skincare",
+        "Hair Care",
+        "Fragrances",
+        "Personal Care",
+        "Health Supplements",
+        "Medical Supplies",
+        "Fitness Equipment",
+      ],
+    },
+    {
+      name: "Sports & Outdoors",
+      icon: "⚽",
+      subcategories: [
+        "Sports Clothing",
+        "Sports Shoes",
+        "Fitness Equipment",
+        "Camping & Hiking",
+        "Cycling",
+        "Water Sports",
+        "Team Sports",
+        "Outdoor Recreation",
+      ],
+    },
+    {
+      name: "Toys & Kids",
+      icon: "🧸",
+      subcategories: [
+        "Action Figures",
+        "Dolls & Playsets",
+        "Educational Toys",
+        "Baby & Toddler",
+        "Outdoor Play",
+        "Puzzles & Games",
+        "Arts & Crafts",
+        "Stuffed Animals",
+      ],
+    },
+    {
+      name: "Automotive",
+      icon: "🚗",
+      subcategories: [
+        "Car Parts",
+        "Motorcycle Parts",
+        "Tools & Equipment",
+        "Car Care",
+        "Interior Accessories",
+        "Exterior Accessories",
+        "Tires & Wheels",
+        "Automotive Electronics",
+      ],
+    },
+    {
+      name: "Office Supplies",
+      icon: "📎",
+      subcategories: [
+        "Stationery",
+        "Office Furniture",
+        "Printers & Supplies",
+        "Writing Instruments",
+        "Paper Products",
+        "Binders & Filing",
+        "Calendars & Planners",
+        "Shipping Supplies",
+      ],
+    },
+  ];
+
+  // Dummy search suggestions
+  const suggestions = [
+    "iPhone 15",
+    "Laptop gaming",
+    "Nike shoes",
+    "Smart watch",
+    "Wireless headphones",
+    "Office chair",
+    "Drone",
+  ].filter((item) => item.toLowerCase().includes(searchQuery.toLowerCase()));
+
+  // Cart item count
+  const cartItemCount = 3; // Dummy
 
   return (
     <header
-      ref={navbarRef}
-      className={`sticky top-0 z-50 w-full transition-shadow ${
-        isScrolled ? "shadow-md bg-white" : "bg-white"
+      className={`bg-white border-b border-gray-200 sticky top-0 z-50 transition-shadow ${
+        scrolled ? "shadow-md" : ""
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Top row: Logo + Categories + Search + Icons */}
-        <div className="flex items-center justify-between h-16 md:h-20">
-          {/* Mobile menu button */}
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900"
-          >
-            {isMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
-          </button>
-
-          {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <div className="relative w-8 h-8 md:w-10 md:h-10">
-              <Image
-                src="/public/globe.svg" // You'll need to add a logo
-                alt="Unity Shop"
-                fill
-                className="object-contain"
-              />
-            </div>
-            <span className="font-bold text-xl md:text-2xl text-gray-800">
-              Unity Shop
-            </span>
-          </Link>
-
-          {/* Categories button - desktop */}
-          <div
-            className="hidden md:block relative ml-4"
-            onMouseEnter={() => handleCategoryHover(categories[0])}
-            onMouseLeave={handleCategoryLeave}
-          >
-            <button className="flex items-center space-x-1 px-4 py-2 rounded-md hover:bg-gray-100">
-              <span className="text-gray-700 font-medium">Categories</span>
-              <FiChevronDown className="text-gray-500" />
+      <div className="container mx-auto px-4">
+        {/* Main navbar row */}
+        <div className="flex items-center justify-between h-16 lg:h-20">
+          {/* Logo and mobile menu button */}
+          <div className="flex items-center gap-2">
+            <button
+              className="lg:hidden p-2 text-gray-600 hover:text-gray-900"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label="Toggle menu"
+            >
+              {isMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
             </button>
+            <Link href="/" className="flex items-center">
+              <span className="text-2xl font-bold text-[#FF6600]">Unity</span>
+              <span className="text-2xl font-bold text-gray-800">Shop</span>
+            </Link>
+          </div>
+
+          {/* Desktop: Categories dropdown */}
+          <div className="hidden lg:flex items-center" ref={categoriesRef}>
+            <button
+              className="flex items-center gap-1 px-4 py-2 text-gray-700 hover:text-[#FF6600] font-medium"
+              onClick={() => setIsCategoriesOpen(!isCategoriesOpen)}
+              onMouseEnter={() => setIsCategoriesOpen(true)}
+            >
+              <span>Categories</span>
+              <FiChevronDown
+                className={`transition-transform ${
+                  isCategoriesOpen ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+            {/* Mega menu */}
+            {isCategoriesOpen && (
+              <div
+                className="absolute left-0 top-16 w-full bg-white border-t border-gray-200 shadow-lg"
+                onMouseLeave={() => setIsCategoriesOpen(false)}
+              >
+                <div className="container mx-auto px-4 py-6">
+                  <div className="grid grid-cols-4 gap-6">
+                    {categories.map((category) => (
+                      <div key={category.name}>
+                        <Link
+                          href={`/category/${category.name.toLowerCase()}`}
+                          className="flex items-center gap-2 text-gray-800 font-semibold hover:text-[#FF6600] mb-2"
+                        >
+                          <span className="text-xl">{category.icon}</span>
+                          <span>{category.name}</span>
+                        </Link>
+                        <ul className="space-y-1">
+                          {category.subcategories.slice(0, 4).map((sub) => (
+                            <li key={sub}>
+                              <Link
+                                href={`/category/${category.name.toLowerCase()}/${sub
+                                  .toLowerCase()
+                                  .replace(/\s+/g, "-")}`}
+                                className="text-sm text-gray-600 hover:text-[#FF6600]"
+                              >
+                                {sub}
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Search bar - desktop */}
-          <div className="hidden md:flex flex-1 max-w-2xl mx-6 relative">
-            <div className="flex w-full border-2 border-orange-500 rounded-md overflow-hidden">
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="px-3 py-2 bg-gray-50 border-r border-gray-300 text-sm focus:outline-none"
-              >
-                <option>All Categories</option>
-                <option>Electronics</option>
-                <option>Fashion</option>
-                <option>Home & Garden</option>
-              </select>
+          <div
+            className="hidden lg:flex flex-1 max-w-2xl mx-4 relative"
+            ref={searchRef}
+          >
+            <div className="flex w-full border border-gray-300 rounded-md overflow-hidden focus-within:border-[#FF6600] focus-within:ring-1 focus-within:ring-[#FF6600]">
+              {/* Category dropdown inside search */}
+              <div className="relative">
+                <button
+                  className="flex items-center gap-1 h-10 px-3 bg-gray-100 text-sm text-gray-700 border-r border-gray-300 hover:bg-gray-200"
+                  onClick={() => {}}
+                >
+                  <span>{selectedCategory}</span>
+                  <FiChevronDown size={16} />
+                </button>
+                {/* Simple category dropdown (you can expand later) */}
+              </div>
               <input
                 type="text"
+                placeholder="What are you looking for?"
+                className="flex-1 h-10 px-3 outline-none text-sm"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={() => setShowSuggestions(true)}
-                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                placeholder="What are you looking for..."
-                className="flex-1 px-4 py-2 focus:outline-none"
+                onFocus={() => setIsSearchFocused(true)}
               />
-              <button className="px-6 bg-orange-500 hover:bg-orange-600 text-white">
+              <button className="h-10 px-4 bg-[#FF6600] text-white hover:bg-[#e65c00] flex items-center justify-center">
                 <FiSearch size={20} />
               </button>
             </div>
-            {/* Search suggestions */}
-            {showSuggestions && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white border rounded-md shadow-lg z-50">
-                <div className="p-2 text-sm text-gray-500">
-                  Popular searches:
-                </div>
-                <ul>
-                  <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                    Smartphones
-                  </li>
-                  <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                    Laptops
-                  </li>
-                  <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                    Men's watches
-                  </li>
+            {/* Search suggestions dropdown */}
+            {isSearchFocused && searchQuery && suggestions.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                <ul className="py-2">
+                  {suggestions.map((suggestion) => (
+                    <li key={suggestion}>
+                      <Link
+                        href={`/search?q=${encodeURIComponent(suggestion)}`}
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setIsSearchFocused(false)}
+                      >
+                        {suggestion}
+                      </Link>
+                    </li>
+                  ))}
                 </ul>
               </div>
             )}
           </div>
 
           {/* Right icons */}
-          <div className="flex items-center space-x-3 md:space-x-4">
-            <button className="hidden md:flex items-center text-gray-700 hover:text-gray-900">
+          <div className="flex items-center gap-1 sm:gap-3">
+            {/* Language selector */}
+            <button className="hidden sm:flex items-center gap-1 p-2 text-gray-700 hover:text-[#FF6600]">
               <FiGlobe size={20} />
-              <span className="ml-1 text-sm">EN</span>
+              <span className="text-sm hidden md:inline">EN</span>
             </button>
-            <Link href="/account" className="text-gray-700 hover:text-gray-900">
-              <FiUser size={22} />
-            </Link>
+
+            {/* User account */}
+            <div className="relative" ref={userMenuRef}>
+              <button
+                className="flex items-center gap-1 p-2 text-gray-700 hover:text-[#FF6600]"
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+              >
+                <FiUser size={20} />
+                <span className="text-sm hidden md:inline">
+                  {isLoggedIn ? "Account" : "Sign In"}
+                </span>
+                <FiChevronDown size={16} className="hidden md:inline" />
+              </button>
+              {isUserMenuOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg py-1">
+                  {isLoggedIn ? (
+                    <>
+                      <Link
+                        href="/dashboard"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        Dashboard
+                      </Link>
+                      <Link
+                        href="/orders"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        My Orders
+                      </Link>
+                      <Link
+                        href="/wishlist"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        Wishlist
+                      </Link>
+                      <hr className="my-1" />
+                      <button
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => {
+                          setIsLoggedIn(false);
+                          setIsUserMenuOpen(false);
+                        }}
+                      >
+                        Sign Out
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <Link
+                        href="/login"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        Sign In
+                      </Link>
+                      <Link
+                        href="/register"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        Create Account
+                      </Link>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Notifications bell */}
+            <button className="hidden sm:block p-2 text-gray-700 hover:text-[#FF6600] relative">
+              <FiBell size={20} />
+              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+
+            {/* Cart */}
             <Link
               href="/cart"
-              className="relative text-gray-700 hover:text-gray-900"
+              className="relative p-2 text-gray-700 hover:text-[#FF6600]"
             >
-              <FiShoppingCart size={22} />
-              <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                3
-              </span>
+              <FiShoppingCart size={20} />
+              {cartItemCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-[#FF6600] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {cartItemCount}
+                </span>
+              )}
             </Link>
-            <button className="relative text-gray-700 hover:text-gray-900 hidden md:block">
-              <FiBell size={22} />
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                2
-              </span>
-            </button>
           </div>
         </div>
 
-        {/* Mobile search bar */}
-        <div className="md:hidden pb-3">
+        {/* Mobile search bar (visible below md) */}
+        <div className="lg:hidden py-2">
           <div className="flex border border-gray-300 rounded-md overflow-hidden">
             <input
               type="text"
-              placeholder="Search..."
-              className="flex-1 px-3 py-2 focus:outline-none"
+              placeholder="Search products..."
+              className="flex-1 h-10 px-3 outline-none text-sm"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <button className="px-4 bg-orange-500 text-white">
-              <FiSearch size={18} />
+            <button className="h-10 px-4 bg-[#FF6600] text-white hover:bg-[#e65c00] flex items-center justify-center">
+              <FiSearch size={20} />
             </button>
           </div>
         </div>
       </div>
 
-      {/* Mega Menu - Desktop */}
-      {isCategoriesOpen && (
-        <div
-          className="hidden md:block absolute left-0 right-0 bg-white shadow-lg border-t"
-          onMouseEnter={() => {
-            if (categoriesTimeout.current)
-              clearTimeout(categoriesTimeout.current);
-          }}
-          onMouseLeave={handleCategoryLeave}
-        >
-          <div className="max-w-7xl mx-auto px-8 py-6 flex">
-            {/* Left column: main categories */}
-            <div className="w-1/4 border-r pr-6">
-              <h3 className="font-semibold text-gray-800 mb-3">
-                All Categories
-              </h3>
-              <ul>
-                {categories.map((cat) => (
-                  <li
-                    key={cat.id}
-                    onMouseEnter={() => setActiveCategory(cat)}
-                    className={`py-2 px-3 rounded cursor-pointer flex items-center justify-between ${
-                      activeCategory?.id === cat.id
-                        ? "bg-orange-50 text-orange-600"
-                        : "hover:bg-gray-50"
-                    }`}
-                  >
-                    <span>
-                      <span className="mr-2">{cat.icon}</span> {cat.name}
-                    </span>
-                    <FiChevronDown className="rotate-[-90deg] text-xs" />
-                  </li>
-                ))}
-              </ul>
-            </div>
-            {/* Right column: subcategories grid */}
-            {activeCategory && (
-              <div className="w-3/4 pl-6">
-                <div className="flex items-center mb-4">
-                  <div className="relative w-16 h-16 mr-4 rounded overflow-hidden">
-                    <Image
-                      src={activeCategory.image}
-                      alt={activeCategory.name}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                  <div>
-                    <h4 className="text-lg font-bold">{activeCategory.name}</h4>
-                    <Link
-                      href={`/categories/${activeCategory.id}`}
-                      className="text-orange-500 text-sm"
-                    >
-                      View All
-                    </Link>
-                  </div>
-                </div>
-                <div className="grid grid-cols-3 gap-4">
-                  {activeCategory.subcategories.map((sub, idx) => (
-                    <Link
-                      key={idx}
-                      href={`/categories/${activeCategory.id}/${sub.toLowerCase().replace(/\s+/g, "-")}`}
-                      className="text-gray-700 hover:text-orange-500"
-                    >
-                      {sub}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Mobile slide-out menu */}
+      {/* Mobile menu drawer */}
       {isMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-50 bg-black bg-opacity-50">
-          <div className="absolute left-0 top-0 bottom-0 w-64 bg-white p-4 overflow-y-auto">
-            <button onClick={() => setIsMenuOpen(false)} className="mb-4">
-              <FiX size={24} />
-            </button>
-            <nav className="space-y-2">
-              <Link href="/categories" className="block py-2 font-medium">
-                Categories
+        <div
+          className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50"
+          onClick={() => setIsMenuOpen(false)}
+        >
+          <div
+            className="fixed left-0 top-0 bottom-0 w-4/5 max-w-sm bg-white overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+              <Link
+                href="/"
+                className="flex items-center"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <span className="text-xl font-bold text-[#FF6600]">Unity</span>
+                <span className="text-xl font-bold text-gray-800">Shop</span>
               </Link>
-              <Link href="/account" className="block py-2">
-                Account
-              </Link>
-              <Link href="/orders" className="block py-2">
-                Orders
-              </Link>
-              <Link href="/help" className="block py-2">
-                Help
-              </Link>
+              <button onClick={() => setIsMenuOpen(false)}>
+                <FiX size={24} />
+              </button>
+            </div>
+            <nav className="p-4">
+              {/* Mobile categories accordion */}
+              <div className="mb-4">
+                <div className="font-semibold text-gray-800 mb-2">
+                  Categories
+                </div>
+                {categories.map((category) => (
+                  <div key={category.name} className="mb-2">
+                    <details className="group">
+                      <summary className="flex items-center gap-2 py-2 text-gray-700 cursor-pointer">
+                        <span className="text-lg">{category.icon}</span>
+                        <span className="flex-1">{category.name}</span>
+                        <FiChevronDown className="group-open:rotate-180 transition-transform" />
+                      </summary>
+                      <ul className="ml-6 mt-1 space-y-1">
+                        {category.subcategories.map((sub) => (
+                          <li key={sub}>
+                            <Link
+                              href={`/category/${category.name.toLowerCase()}/${sub
+                                .toLowerCase()
+                                .replace(/\s+/g, "-")}`}
+                              className="block py-1 text-sm text-gray-600 hover:text-[#FF6600]"
+                              onClick={() => setIsMenuOpen(false)}
+                            >
+                              {sub}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  </div>
+                ))}
+              </div>
+
+              {/* Mobile menu links */}
+              <div className="border-t border-gray-200 pt-4">
+                <Link
+                  href="/deals"
+                  className="block py-2 text-gray-700 hover:text-[#FF6600]"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Deals
+                </Link>
+                <Link
+                  href="/help"
+                  className="block py-2 text-gray-700 hover:text-[#FF6600]"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Help Center
+                </Link>
+                <Link
+                  href="/become-seller"
+                  className="block py-2 text-gray-700 hover:text-[#FF6600]"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Become a Seller
+                </Link>
+              </div>
+
+              {/* Mobile auth buttons */}
+              <div className="border-t border-gray-200 mt-4 pt-4 flex flex-col gap-2">
+                {isLoggedIn ? (
+                  <>
+                    <Link
+                      href="/dashboard"
+                      className="block py-2 text-gray-700 hover:text-[#FF6600]"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
+                    <button
+                      className="block py-2 text-left text-gray-700 hover:text-[#FF6600]"
+                      onClick={() => {
+                        setIsLoggedIn(false);
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      Sign Out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/login"
+                      className="bg-[#FF6600] text-white text-center py-2 rounded-md hover:bg-[#e65c00]"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Sign In
+                    </Link>
+                    <Link
+                      href="/register"
+                      className="border border-gray-300 text-center py-2 rounded-md hover:bg-gray-50"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Create Account
+                    </Link>
+                  </>
+                )}
+              </div>
             </nav>
           </div>
         </div>
       )}
     </header>
   );
-}
+};
+
+export default Navbar;

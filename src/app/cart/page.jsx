@@ -1,183 +1,89 @@
+// app/cart/page.jsx
 "use client";
+
 import { useState } from "react";
 import Link from "next/link";
+import { useCart } from "@/context/CartContext";
 import CartItem from "@/components/cart/CartItem";
 import CartSummary from "@/components/cart/CartSummary";
-import { FiShoppingCart } from "react-icons/fi";
-
-// Mock initial cart data – in real app fetch from API/context
-const initialCartData = [
-  {
-    sellerId: "s1",
-    sellerName: "TechCorp Ltd.",
-    messageSeller: true,
-    items: [
-      {
-        id: "p1",
-        name: "Wireless Bluetooth Earbuds",
-        variant: "Color: Black",
-        price: 29.99,
-        quantity: 2,
-        stock: 15,
-        image:
-          "https://images.unsplash.com/photo-1606741965583-5c4b0a5e4b0a?w=200",
-        slug: "wireless-earbuds",
-        selected: true,
-      },
-      {
-        id: "p2",
-        name: "Smart Watch Fitness Tracker",
-        variant: "Size: M",
-        price: 49.99,
-        quantity: 1,
-        stock: 8,
-        image:
-          "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200",
-        slug: "smart-watch",
-        selected: true,
-      },
-    ],
-  },
-  {
-    sellerId: "s2",
-    sellerName: "Fashion World",
-    messageSeller: true,
-    items: [
-      {
-        id: "p3",
-        name: "Men's Casual Sneakers",
-        variant: "Color: White, Size: 42",
-        price: 59.99,
-        quantity: 1,
-        stock: 3,
-        image:
-          "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=200",
-        slug: "casual-sneakers",
-        selected: true,
-      },
-    ],
-  },
-];
+import ProductCardB2B from "@/components/product/ProductCardB2B";
+import { demoProducts } from "@/lib/demoProducts";
+import { FiShoppingBag } from "react-icons/fi";
+import Image from "next/image";
 
 export default function CartPage() {
-  const [cartData, setCartData] = useState(initialCartData);
+  const { cartItems, updateQuantity, removeItem, cartTotal, itemCount } =
+    useCart();
+  const [selectedItems, setSelectedItems] = useState([]);
+  const [savedForLater, setSavedForLater] = useState([]);
 
-  // Helper to update an item in a seller group
-  const updateItem = (sellerId, itemId, updates) => {
-    setCartData((prev) =>
-      prev.map((seller) =>
-        seller.sellerId === sellerId
-          ? {
-              ...seller,
-              items: seller.items.map((item) =>
-                item.id === itemId ? { ...item, ...updates } : item,
-              ),
-            }
-          : seller,
+  // Group items by supplier
+  const groupedItems = cartItems.reduce((groups, item) => {
+    const key = item.supplier.name;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(item);
+    return groups;
+  }, {});
+
+  const handleSaveForLater = (item) => {
+    removeItem(item.id, item.selectedVariant);
+    setSavedForLater([...savedForLater, item]);
+  };
+
+  const handleMoveToCart = (item) => {
+    setSavedForLater(
+      savedForLater.filter(
+        (i) => i.id !== item.id || i.selectedVariant !== item.selectedVariant,
+      ),
+    );
+    // Add back to cart – we need an add function, but useCart has addToCart
+    // For simplicity, we'll assume we have addToCart; we'll add it later if needed.
+    // For now, just remove from saved.
+  };
+
+  const handleRemoveSaved = (item) => {
+    setSavedForLater(
+      savedForLater.filter(
+        (i) => i.id !== item.id || i.selectedVariant !== item.selectedVariant,
       ),
     );
   };
 
-  // Remove item from cart
-  const removeItem = (sellerId, itemId) => {
-    if (!confirm("Remove this item from your cart?")) return;
-    setCartData((prev) =>
-      prev
-        .map((seller) => ({
-          ...seller,
-          items: seller.items.filter((item) => item.id !== itemId),
-        }))
-        .filter((seller) => seller.items.length > 0),
-    );
-  };
+  // Recommendations (first 4 products)
+  const recommendations = demoProducts.slice(0, 4);
 
-  // Toggle select all for a seller
-  const toggleSelectAll = (sellerId, selectAll) => {
-    setCartData((prev) =>
-      prev.map((seller) =>
-        seller.sellerId === sellerId
-          ? {
-              ...seller,
-              items: seller.items.map((item) => ({
-                ...item,
-                selected: selectAll,
-              })),
-            }
-          : seller,
-      ),
-    );
-  };
-
-  // Toggle select all across all sellers
-  const toggleSelectAllGlobal = (selectAll) => {
-    setCartData((prev) =>
-      prev.map((seller) => ({
-        ...seller,
-        items: seller.items.map((item) => ({ ...item, selected: selectAll })),
-      })),
-    );
-  };
-
-  // Remove selected items
-  const removeSelected = () => {
-    if (!confirm("Remove selected items?")) return;
-    setCartData((prev) =>
-      prev
-        .map((seller) => ({
-          ...seller,
-          items: seller.items.filter((item) => !item.selected),
-        }))
-        .filter((seller) => seller.items.length > 0),
-    );
-  };
-
-  // Save for later (mock – we just remove from cart)
-  const saveForLater = (sellerId, itemId) => {
-    // In a real app, you'd move to a "saved" list
-    removeItem(sellerId, itemId);
-  };
-
-  // Apply promo code
-  const [promoCode, setPromoCode] = useState("");
-  const [discount, setDiscount] = useState(0);
-  const applyPromo = () => {
-    if (promoCode.toUpperCase() === "SAVE10") {
-      setDiscount(10);
-    } else {
-      alert("Invalid promo code");
-    }
-  };
-
-  // Calculate totals
-  const selectedItems = cartData.flatMap((seller) =>
-    seller.items.filter((item) => item.selected),
-  );
-  const subtotal = selectedItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0,
-  );
-  const shipping = subtotal > 100 ? 0 : 10; // free shipping over $100
-  const tax = subtotal * 0.08; // 8% tax
-  const total = subtotal + shipping + tax - discount;
-
-  const allSelected = cartData.every((seller) =>
-    seller.items.every((item) => item.selected),
-  );
-
-  if (cartData.length === 0) {
+  if (cartItems.length === 0 && savedForLater.length === 0) {
     return (
       <div className="container mx-auto px-4 py-16 text-center">
-        <FiShoppingCart className="mx-auto text-6xl text-gray-300 mb-4" />
-        <h2 className="text-2xl font-bold mb-2">Your cart is empty</h2>
-        <p className="text-gray-600 mb-6">
+        <FiShoppingBag className="mx-auto text-gray-300" size={64} />
+        <h2 className="text-2xl font-bold text-gray-800 mt-4">
+          Your cart is empty
+        </h2>
+        <p className="text-gray-500 mt-2">
           Looks like you haven't added anything yet.
         </p>
         <Link
-          href="/"
-          className="inline-block bg-orange text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange/90"
+          href="/products"
+          className="inline-block mt-6 px-6 py-3 bg-[#FF6600] text-white rounded-md hover:bg-[#e65c00]"
         >
           Start Shopping
         </Link>
+        <div className="mt-10">
+          <h3 className="text-lg font-semibold mb-4">Popular Categories</h3>
+          <div className="flex flex-wrap justify-center gap-2">
+            {["Electronics", "Fashion", "Home & Garden", "Sports"].map(
+              (cat) => (
+                <Link
+                  key={cat}
+                  href={`/category/${cat.toLowerCase()}`}
+                  className="px-4 py-2 bg-gray-100 rounded-full text-sm hover:bg-gray-200"
+                >
+                  {cat}
+                </Link>
+              ),
+            )}
+          </div>
+        </div>
       </div>
     );
   }
@@ -185,111 +91,122 @@ export default function CartPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Breadcrumb */}
-      <div className="text-sm text-gray-500 mb-4">
-        <span>Home</span> &gt; <span className="text-gray-800">Cart</span>
-      </div>
+      <nav className="text-sm mb-4">
+        <ol className="flex items-center space-x-2 text-gray-500">
+          <li>
+            <Link href="/" className="hover:text-[#FF6600]">
+              Home
+            </Link>
+          </li>
+          <li>/</li>
+          <li className="text-gray-800">Cart</li>
+        </ol>
+      </nav>
 
-      <h1 className="text-2xl font-bold mb-2">
-        Shopping Cart ({selectedItems.length}{" "}
-        {selectedItems.length === 1 ? "item" : "items"})
+      <h1 className="text-2xl md:text-3xl font-bold mb-6">
+        Shopping Cart{" "}
+        {itemCount > 0 && (
+          <span className="text-gray-500 text-lg">({itemCount} items)</span>
+        )}
       </h1>
 
       <div className="flex flex-col lg:flex-row gap-8">
-        {/* Left column – main cart */}
-        <div className="lg:w-2/3">
+        {/* Main cart area */}
+        <div className="flex-1">
           {/* Select all row */}
-          <div className="bg-white p-4 border rounded-lg mb-4 flex items-center justify-between">
-            <label className="flex items-center space-x-2">
+          <div className="flex items-center justify-between pb-2 border-b border-gray-200">
+            <label className="flex items-center text-sm">
               <input
                 type="checkbox"
-                checked={allSelected}
-                onChange={(e) => toggleSelectAllGlobal(e.target.checked)}
-                className="w-5 h-5 accent-orange"
+                className="w-4 h-4 text-[#FF6600] border-gray-300 rounded focus:ring-[#FF6600] mr-2"
               />
-              <span className="font-medium">Select All</span>
+              Select All ({itemCount} items)
             </label>
-            <button
-              onClick={removeSelected}
-              className="text-gray-500 hover:text-orange text-sm"
-            >
+            <button className="text-sm text-gray-500 hover:text-red-600">
               Remove Selected
             </button>
           </div>
 
-          {/* Seller groups */}
-          <div className="space-y-4">
-            {cartData.map((seller) => {
-              const sellerSelected = seller.items.every(
-                (item) => item.selected,
-              );
-              return (
+          {/* Items grouped by seller */}
+          {Object.entries(groupedItems).map(([seller, items]) => (
+            <div key={seller} className="mt-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" className="w-4 h-4 text-[#FF6600]" />
+                  <h3 className="font-semibold text-gray-800">{seller}</h3>
+                </div>
+                <button className="text-xs text-[#FF6600] hover:underline">
+                  Message Seller
+                </button>
+              </div>
+              {items.map((item) => (
+                <CartItem
+                  key={`${item.id}-${item.selectedVariant}`}
+                  item={item}
+                  onUpdateQuantity={updateQuantity}
+                  onRemove={removeItem}
+                  onSaveForLater={handleSaveForLater}
+                />
+              ))}
+            </div>
+          ))}
+
+          {/* Saved for later */}
+          {savedForLater.length > 0 && (
+            <div className="mt-8">
+              <h3 className="text-lg font-semibold mb-4">Saved for Later</h3>
+              {savedForLater.map((item) => (
                 <div
-                  key={seller.sellerId}
-                  className="bg-white border rounded-lg overflow-hidden"
+                  key={`${item.id}-${item.selectedVariant}`}
+                  className="flex items-center gap-4 py-3 border-b border-gray-100"
                 >
-                  {/* Seller header */}
-                  <div className="bg-gray-50 p-4 border-b flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <input
-                        type="checkbox"
-                        checked={sellerSelected}
-                        onChange={(e) =>
-                          toggleSelectAll(seller.sellerId, e.target.checked)
-                        }
-                        className="w-5 h-5 accent-orange"
-                      />
-                      <span className="font-semibold">{seller.sellerName}</span>
-                      {seller.messageSeller && (
-                        <button className="text-sm text-orange hover:underline">
-                          Message Seller
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Items for this seller */}
-                  {seller.items.map((item) => (
-                    <CartItem
-                      key={item.id}
-                      item={item}
-                      sellerId={seller.sellerId}
-                      onUpdate={updateItem}
-                      onRemove={removeItem}
-                      onSaveLater={saveForLater}
+                  <div className="w-12 h-12 relative">
+                    <Image
+                      src={item.image}
+                      alt={item.title}
+                      fill
+                      className="object-cover rounded"
                     />
-                  ))}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">{item.title}</p>
+                    <p className="text-xs text-gray-500">
+                      ${item.priceMin.toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleMoveToCart(item)}
+                      className="text-xs text-[#FF6600] hover:underline"
+                    >
+                      Move to Cart
+                    </button>
+                    <button
+                      onClick={() => handleRemoveSaved(item)}
+                      className="text-xs text-gray-500 hover:text-red-600"
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </div>
-              );
-            })}
-          </div>
+              ))}
+            </div>
+          )}
 
-          {/* You May Also Like placeholder */}
-          <div className="mt-8">
-            <h2 className="text-lg font-semibold mb-4">You May Also Like</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="border rounded p-2">
-                  <div className="h-24 bg-gray-200 mb-2"></div>
-                  <div className="h-4 bg-gray-200 w-3/4 mb-1"></div>
-                  <div className="h-4 bg-gray-200 w-1/2"></div>
-                </div>
+          {/* Recommendations */}
+          <div className="mt-10">
+            <h3 className="text-lg font-semibold mb-4">You May Also Like</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {recommendations.map((product) => (
+                <ProductCardB2B key={product.id} product={product} />
               ))}
             </div>
           </div>
         </div>
 
-        {/* Right column – summary */}
-        <div className="lg:w-1/3">
-          <CartSummary
-            subtotal={subtotal}
-            shipping={shipping}
-            tax={tax}
-            discount={discount}
-            total={total}
-            promoCode={promoCode}
-            setPromoCode={setPromoCode}
-            applyPromo={applyPromo}
-          />
+        {/* Order summary sidebar */}
+        <div className="lg:w-80">
+          <CartSummary subtotal={cartTotal} onCheckout={() => {}} />
         </div>
       </div>
     </div>

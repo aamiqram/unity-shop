@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "cloudinary": "^2.9.0",
-    "framer-motion": "^12.34.2",
+    "emoji-picker-react": "^4.18.0",
+    "framer-motion": "^12.34.3",
     "jspdf": "^4.2.0",
     "mongoose": "^9.2.1",
     "multer": "^2.0.2",

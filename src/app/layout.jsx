@@ -2,7 +2,10 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/common/Navbar";
 import Footer from "@/components/common/Footer";
-import ChatButton from "@/components/common/ChatButton"; // if you have it
+import { ChatProvider } from "@/context/ChatContext";
+import ChatButton from "@/components/chat/ChatButton";
+import ChatWindow from "@/components/chat/ChatWindow";
+import { CartProvider } from "@/context/CartContext";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -27,10 +30,15 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${inter.variable}`}>
       <body className="min-h-screen flex flex-col">
-        <Navbar />
-        <main className="flex-1 animate-fade-in">{children}</main>
-        <Footer />
-        <ChatButton /> {/* optional floating chat */}
+        <ChatProvider>
+          <CartProvider>
+            <Navbar />
+            <main className="flex-1 animate-fade-in">{children}</main>
+            <ChatWindow />
+            <ChatButton /> {/* optional floating chat */}
+            <Footer />
+          </CartProvider>
+        </ChatProvider>
       </body>
     </html>
   );

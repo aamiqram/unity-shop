@@ -1,27 +1,33 @@
+// components/product/ProductCardB2B.jsx
 "use client";
 
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { FiShield, FiMessageSquare, FiShoppingCart } from "react-icons/fi";
+import { FiShoppingCart, FiMessageSquare, FiCheckCircle } from "react-icons/fi";
 
-export default function ProductCardB2B({ product }) {
+const ProductCardB2B = ({ product }) => {
   const [isHovered, setIsHovered] = useState(false);
 
-  // Default product data structure
+  // Default product structure (can be overridden by props)
   const {
-    id,
-    title,
-    image,
-    priceMin,
-    priceMax,
-    unit = "piece",
-    moq,
-    supplier,
-    location,
-    yearsInBusiness,
-    responseRate,
-    tradeAssurance = true,
+    id = "1",
+    title = "Wireless Bluetooth Earbuds with Charging Case",
+    image = "https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=400&auto=format&fit=crop",
+    priceMin = 2.5,
+    priceMax = 5.0,
+    priceUnit = "piece",
+    moq = 100,
+    supplier = {
+      name: "Shenzhen Tech Co., Ltd.",
+      location: "Guangdong, China",
+      flag: "🇨🇳",
+      yearsInBusiness: 8,
+      responseRate: 95,
+      tradeAssurance: true,
+      verified: true,
+    },
+    slug = "wireless-earbuds",
   } = product;
 
   return (
@@ -30,85 +36,99 @@ export default function ProductCardB2B({ product }) {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Image with zoom */}
-      <div className="relative aspect-square overflow-hidden">
+      {/* Image container with hover zoom */}
+      <Link
+        href={`/products/${id}/${slug}`}
+        className="block relative aspect-square overflow-hidden bg-gray-100"
+      >
         <Image
           src={image}
           alt={title}
           fill
-          className={`object-cover transition-transform duration-500 ${
-            isHovered ? "scale-110" : "scale-100"
-          }`}
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+          className={`object-cover transition-transform duration-500 ${isHovered ? "scale-110" : "scale-100"}`}
         />
-        {/* Overlay with "Request Quote" on hover */}
+        {/* Hover overlay with "Request Quote" */}
         {isHovered && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-            <button className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md font-medium">
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center transition-opacity">
+            <span className="bg-white text-gray-900 px-4 py-2 rounded-md font-medium text-sm">
               Request Quote
-            </button>
+            </span>
           </div>
         )}
-      </div>
+      </Link>
 
-      <div className="p-3">
-        {/* Title */}
-        <h3 className="font-medium text-gray-800 line-clamp-2 h-12 mb-2">
-          <Link href={`/products/${id}`} className="hover:text-orange-500">
+      {/* Content */}
+      <div className="p-3 sm:p-4">
+        {/* Product title */}
+        <Link href={`/products/${id}/${slug}`} className="block">
+          <h3 className="text-sm sm:text-base font-medium text-gray-800 line-clamp-2 h-10 sm:h-12 mb-2 hover:text-[#FF6600]">
             {title}
-          </Link>
-        </h3>
+          </h3>
+        </Link>
 
-        {/* Price Range */}
+        {/* Price range */}
         <div className="mb-2">
-          <span className="text-orange-500 font-bold text-lg">
-            ${priceMin} - ${priceMax}
+          <span className="text-lg sm:text-xl font-bold text-[#FF6600]">
+            ${priceMin.toFixed(2)} - ${priceMax.toFixed(2)}
           </span>
-          <span className="text-gray-500 text-sm ml-1">/{unit}</span>
+          <span className="text-xs text-gray-500 ml-1">/ {priceUnit}</span>
         </div>
 
-        {/* MOQ Badge */}
-        <div className="text-sm text-gray-600 mb-3">
-          MOQ: <span className="font-medium">{moq}</span>
-        </div>
+        {/* MOQ */}
+        <div className="text-xs text-gray-500 mb-3">MOQ: {moq} pieces</div>
 
-        {/* Supplier Info */}
-        <div className="border-t pt-3">
+        {/* Supplier info */}
+        <div className="border-t border-gray-100 pt-3">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">{supplier}</span>
-            <div className="flex items-center space-x-1">
-              {tradeAssurance && (
-                <span title="Trade Assurance" className="text-orange-500">
-                  <FiShield size={16} />
+            <span className="text-xs font-medium text-gray-700 truncate max-w-[120px]">
+              {supplier.name}
+            </span>
+            <div className="flex items-center gap-1">
+              {supplier.verified && (
+                <span className="text-[#FF6600]" title="Verified Supplier">
+                  <FiCheckCircle size={14} />
+                </span>
+              )}
+              {supplier.tradeAssurance && (
+                <span className="bg-blue-100 text-blue-800 text-[10px] px-1 py-0.5 rounded">
+                  TA
                 </span>
               )}
             </div>
           </div>
+
+          {/* Location with flag */}
           <div className="flex items-center text-xs text-gray-500 mb-2">
-            <span>{location}</span>
-            <span className="mx-1">•</span>
-            <span>{yearsInBusiness}+ yrs</span>
+            <span className="mr-1">{supplier.flag}</span>
+            <span>{supplier.location}</span>
           </div>
-          <div className="flex items-center justify-between text-xs">
-            <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded">
-              {responseRate}% Response
+
+          {/* Badges: years and response rate */}
+          <div className="flex flex-wrap gap-1 mb-3">
+            <span className="bg-green-100 text-green-800 text-[10px] px-2 py-0.5 rounded">
+              {supplier.yearsInBusiness}+ yrs
             </span>
-            <div className="flex space-x-2">
-              <button title="Contact Supplier">
-                <FiMessageSquare
-                  size={16}
-                  className="text-gray-600 hover:text-orange-500"
-                />
-              </button>
-              <button title="Add to Cart">
-                <FiShoppingCart
-                  size={16}
-                  className="text-gray-600 hover:text-orange-500"
-                />
-              </button>
-            </div>
+            <span className="bg-blue-100 text-blue-800 text-[10px] px-2 py-0.5 rounded">
+              {supplier.responseRate}% Response
+            </span>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex gap-2">
+            <button className="flex-1 bg-[#FF6600] hover:bg-[#e65c00] text-white text-xs sm:text-sm py-2 rounded-md flex items-center justify-center gap-1 transition-colors">
+              <FiMessageSquare size={16} />
+              <span className="hidden sm:inline">Contact</span>
+            </button>
+            <button className="flex-1 border border-gray-300 hover:border-[#FF6600] text-gray-700 hover:text-[#FF6600] text-xs sm:text-sm py-2 rounded-md flex items-center justify-center gap-1 transition-colors">
+              <FiShoppingCart size={16} />
+              <span className="hidden sm:inline">Add</span>
+            </button>
           </div>
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default ProductCardB2B;

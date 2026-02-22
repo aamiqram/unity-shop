@@ -1,114 +1,112 @@
+// components/cart/CartItem.jsx
 "use client";
+
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { FiTrash2, FiHeart } from "react-icons/fi";
+import { FiMinus, FiPlus, FiTrash2, FiHeart } from "react-icons/fi";
 
-export default function CartItem({
-  item,
-  sellerId,
-  onUpdate,
-  onRemove,
-  onSaveLater,
-}) {
+const CartItem = ({ item, onUpdateQuantity, onRemove, onSaveForLater }) => {
   const [quantity, setQuantity] = useState(item.quantity);
 
-  const handleQuantityChange = (newQty) => {
-    if (newQty < 1) return;
-    if (newQty > item.stock) {
-      alert(`Only ${item.stock} items in stock`);
-      return;
+  const handleQuantityChange = (delta) => {
+    const newQty = quantity + delta;
+    if (newQty >= 1) {
+      setQuantity(newQty);
+      onUpdateQuantity(item.id, item.selectedVariant, newQty);
     }
-    setQuantity(newQty);
-    onUpdate(sellerId, item.id, { quantity: newQty });
+  };
+
+  const handleInputChange = (e) => {
+    const val = parseInt(e.target.value);
+    if (!isNaN(val) && val >= 1) {
+      setQuantity(val);
+      onUpdateQuantity(item.id, item.selectedVariant, val);
+    }
   };
 
   return (
-    <div className="flex p-4 border-b last:border-b-0">
-      {/* Checkbox */}
-      <div className="mr-4 flex items-start pt-2">
+    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 py-4 border-b border-gray-200">
+      {/* Checkbox (for selection) – we'll add later */}
+      <div className="flex items-center gap-3 w-full sm:w-auto">
         <input
           type="checkbox"
-          checked={item.selected}
-          onChange={(e) =>
-            onUpdate(sellerId, item.id, { selected: e.target.checked })
-          }
-          className="w-5 h-5 accent-orange"
+          className="w-4 h-4 text-[#FF6600] border-gray-300 rounded focus:ring-[#FF6600]"
         />
-      </div>
-
-      {/* Product image */}
-      <Link href={`/products/${item.slug}`} className="flex-shrink-0">
-        <div className="relative w-20 h-20 border rounded overflow-hidden">
+        <div className="w-16 h-16 relative flex-shrink-0">
           <Image
             src={item.image}
-            alt={item.name}
+            alt={item.title}
             fill
-            className="object-cover"
+            className="object-cover rounded"
           />
         </div>
-      </Link>
+      </div>
 
-      {/* Details */}
-      <div className="flex-1 ml-4">
-        <div className="flex justify-between">
-          <div>
-            <Link
-              href={`/products/${item.slug}`}
-              className="font-medium hover:text-orange line-clamp-2"
-            >
-              {item.name}
-            </Link>
-            {item.variant && (
-              <p className="text-sm text-gray-500">{item.variant}</p>
-            )}
-            <p className="text-sm text-gray-500">
-              Stock: {item.stock > 10 ? "In Stock" : `Only ${item.stock} left`}
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="font-semibold text-orange">
-              ${item.price.toFixed(2)}
-            </p>
-            <p className="text-sm text-gray-500">each</p>
-          </div>
+      {/* Product info */}
+      <div className="flex-1">
+        <Link
+          href={`/products/${item.id}/${item.slug}`}
+          className="text-sm font-medium text-gray-800 hover:text-[#FF6600] line-clamp-2"
+        >
+          {item.title}
+        </Link>
+        {item.selectedVariant && (
+          <p className="text-xs text-gray-500 mt-1">
+            Variant: {item.selectedVariant}
+          </p>
+        )}
+        <p className="text-xs text-gray-500 mt-1">
+          Seller: {item.supplier.name}
+        </p>
+        <div className="flex items-center gap-2 mt-2">
+          <button
+            onClick={() => onSaveForLater(item)}
+            className="text-xs text-gray-500 hover:text-[#FF6600] flex items-center gap-1"
+          >
+            <FiHeart size={14} />
+            Save for later
+          </button>
+          <button
+            onClick={() => onRemove(item.id, item.selectedVariant)}
+            className="text-xs text-gray-500 hover:text-red-600 flex items-center gap-1"
+          >
+            <FiTrash2 size={14} />
+            Remove
+          </button>
         </div>
+      </div>
 
-        {/* Actions & quantity */}
-        <div className="flex items-center justify-between mt-2">
-          <div className="flex items-center border rounded">
-            <button
-              onClick={() => handleQuantityChange(quantity - 1)}
-              className="px-3 py-1 border-r hover:bg-gray-100"
-              disabled={quantity <= 1}
-            >
-              -
-            </button>
-            <span className="px-4 py-1 w-12 text-center">{quantity}</span>
-            <button
-              onClick={() => handleQuantityChange(quantity + 1)}
-              className="px-3 py-1 border-l hover:bg-gray-100"
-              disabled={quantity >= item.stock}
-            >
-              +
-            </button>
-          </div>
-          <div className="flex space-x-3 text-sm">
-            <button
-              onClick={() => onSaveLater(sellerId, item.id)}
-              className="text-gray-500 hover:text-orange flex items-center"
-            >
-              <FiHeart className="mr-1" /> Save for later
-            </button>
-            <button
-              onClick={() => onRemove(sellerId, item.id)}
-              className="text-gray-500 hover:text-red-600 flex items-center"
-            >
-              <FiTrash2 className="mr-1" /> Remove
-            </button>
-          </div>
+      {/* Price and quantity */}
+      <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
+        <div className="text-sm font-medium">${item.priceMin.toFixed(2)}</div>
+        <div className="flex items-center border border-gray-300 rounded">
+          <button
+            onClick={() => handleQuantityChange(-1)}
+            className="px-2 py-1 hover:bg-gray-100"
+          >
+            <FiMinus size={14} />
+          </button>
+          <input
+            type="number"
+            value={quantity}
+            onChange={handleInputChange}
+            className="w-12 text-center border-x border-gray-300 py-1 text-sm focus:outline-none"
+            min="1"
+          />
+          <button
+            onClick={() => handleQuantityChange(1)}
+            className="px-2 py-1 hover:bg-gray-100"
+          >
+            <FiPlus size={14} />
+          </button>
+        </div>
+        <div className="font-semibold text-[#FF6600] w-20 text-right">
+          ${(item.priceMin * quantity).toFixed(2)}
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default CartItem;

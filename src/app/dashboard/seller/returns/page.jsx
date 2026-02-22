@@ -1,92 +1,111 @@
+// app/dashboard/seller/returns/page.jsx
 "use client";
-import { useState } from "react";
 
-const returns = [
-  {
-    id: "RET-001",
-    order: "ORD-123456",
-    customer: "John Doe",
-    reason: "Damaged",
-    status: "Pending",
-    date: "2025-03-18",
-  },
-  {
-    id: "RET-002",
-    order: "ORD-123457",
-    customer: "Jane Smith",
-    reason: "Wrong item",
-    status: "Approved",
-    date: "2025-03-17",
-  },
-];
+import { useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import SellerLayout from "@/components/seller/SellerLayout";
+import { mockReturns } from "@/lib/returnData";
+import { FiEye } from "react-icons/fi";
 
 export default function SellerReturnsPage() {
-  const [filter, setFilter] = useState("pending");
+  // For demo, filter returns for seller1 (Shenzhen Tech Co.)
+  const sellerReturns = mockReturns.filter((r) => r.sellerId === "seller1");
+  const [returns, setReturns] = useState(sellerReturns);
+
+  const pendingCount = returns.filter(
+    (r) => r.status === "Return requested",
+  ).length;
+  const approvedCount = returns.filter((r) => r.status === "Approved").length;
+  const shippedCount = returns.filter(
+    (r) => r.status === "Item shipped back",
+  ).length;
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Return Requests</h1>
+    <SellerLayout>
+      <div>
+        <h1 className="text-2xl font-bold mb-2">Return Requests</h1>
+        <p className="text-gray-600 mb-6">Manage customer returns</p>
 
-      <div className="flex space-x-2 mb-4">
-        <button
-          onClick={() => setFilter("pending")}
-          className={`px-3 py-1 rounded-full ${filter === "pending" ? "bg-orange text-white" : "bg-gray-100"}`}
-        >
-          Pending
-        </button>
-        <button
-          onClick={() => setFilter("approved")}
-          className={`px-3 py-1 rounded-full ${filter === "approved" ? "bg-orange text-white" : "bg-gray-100"}`}
-        >
-          Approved
-        </button>
-        <button
-          onClick={() => setFilter("completed")}
-          className={`px-3 py-1 rounded-full ${filter === "completed" ? "bg-orange text-white" : "bg-gray-100"}`}
-        >
-          Completed
-        </button>
-      </div>
+        {/* Summary cards */}
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="bg-white p-4 rounded-lg border border-gray-200">
+            <p className="text-sm text-gray-500">Pending</p>
+            <p className="text-xl font-bold text-orange-600">{pendingCount}</p>
+          </div>
+          <div className="bg-white p-4 rounded-lg border border-gray-200">
+            <p className="text-sm text-gray-500">Approved</p>
+            <p className="text-xl font-bold text-blue-600">{approvedCount}</p>
+          </div>
+          <div className="bg-white p-4 rounded-lg border border-gray-200">
+            <p className="text-sm text-gray-500">Shipped Back</p>
+            <p className="text-xl font-bold text-green-600">{shippedCount}</p>
+          </div>
+        </div>
 
-      <table className="w-full bg-white rounded-lg border">
-        <thead>
-          <tr className="bg-gray-50">
-            <th>Return ID</th>
-            <th>Order</th>
-            <th>Customer</th>
-            <th>Reason</th>
-            <th>Date</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {returns.map((r) => (
-            <tr key={r.id} className="border-t">
-              <td className="p-2">{r.id}</td>
-              <td className="p-2">{r.order}</td>
-              <td className="p-2">{r.customer}</td>
-              <td className="p-2">{r.reason}</td>
-              <td className="p-2">{r.date}</td>
-              <td className="p-2">
-                <span
-                  className={`px-2 py-1 rounded text-xs ${r.status === "Pending" ? "bg-yellow-100" : r.status === "Approved" ? "bg-green-100" : "bg-gray-100"}`}
+        {/* Returns table */}
+        <div className="bg-white border border-gray-200 rounded-lg overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="p-3 text-left">Return ID</th>
+                <th className="p-3 text-left">Order</th>
+                <th className="p-3 text-left">Product</th>
+                <th className="p-3 text-left">Buyer</th>
+                <th className="p-3 text-left">Reason</th>
+                <th className="p-3 text-left">Status</th>
+                <th className="p-3 text-left">Request Date</th>
+                <th className="p-3 text-left">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {returns.map((r) => (
+                <tr
+                  key={r.id}
+                  className="border-b border-gray-100 hover:bg-gray-50"
                 >
-                  {r.status}
-                </span>
-              </td>
-              <td className="p-2">
-                {r.status === "Pending" && (
-                  <>
-                    <button className="text-green-600 mr-2">Approve</button>
-                    <button className="text-red-600">Reject</button>
-                  </>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+                  <td className="p-3 font-mono text-xs">{r.id}</td>
+                  <td className="p-3 font-mono text-xs">{r.orderId}</td>
+                  <td className="p-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 relative">
+                        <Image
+                          src={r.productImage}
+                          alt={r.productName}
+                          width={32}
+                          height={32}
+                          className="rounded"
+                        />
+                      </div>
+                      <span className="truncate max-w-[150px]">
+                        {r.productName}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="p-3">{r.buyerName}</td>
+                  <td className="p-3 capitalize">{r.reason}</td>
+                  <td className="p-3">
+                    <span className="px-2 py-1 rounded-full text-xs bg-yellow-100 text-yellow-800">
+                      {r.status}
+                    </span>
+                  </td>
+                  <td className="p-3">
+                    {new Date(r.requestDate).toLocaleDateString()}
+                  </td>
+                  <td className="p-3">
+                    <Link
+                      href={`/dashboard/seller/returns/${r.id}`}
+                      className="text-gray-500 hover:text-[#FF6600]"
+                    >
+                      <FiEye size={16} />
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </SellerLayout>
   );
 }

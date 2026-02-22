@@ -1,55 +1,84 @@
-"use client";
-import { FiCheck, FiClock } from "react-icons/fi";
+// components/orders/OrderTimeline.jsx
+import {
+  FiCheckCircle,
+  FiCircle,
+  FiTruck,
+  FiPackage,
+  FiHome,
+} from "react-icons/fi";
 
-export default function OrderTimeline({ timeline }) {
-  const getStageIcon = (status) => {
-    if (status === "completed") return <FiCheck className="text-white" />;
-    if (status === "current") return <FiClock className="text-orange" />;
-    return <div className="w-3 h-3 bg-gray-300 rounded-full"></div>;
-  };
+const statusIcons = {
+  "order-placed": FiCheckCircle,
+  confirmed: FiCheckCircle,
+  processing: FiPackage,
+  shipped: FiTruck,
+  delivered: FiHome,
+};
 
-  const getStageColor = (status) => {
-    if (status === "completed") return "bg-green-500";
-    if (status === "current") return "bg-orange border-2 border-orange/30";
-    return "bg-gray-300";
-  };
+const OrderTimeline = ({ status, events }) => {
+  // status should be one of: 'order-placed', 'confirmed', 'processing', 'shipped', 'delivered'
+  const steps = [
+    { key: "order-placed", label: "Order Placed" },
+    { key: "confirmed", label: "Confirmed" },
+    { key: "processing", label: "Processing" },
+    { key: "shipped", label: "Shipped" },
+    { key: "delivered", label: "Delivered" },
+  ];
+
+  const currentIndex = steps.findIndex((s) => s.key === status);
 
   return (
-    <div className="relative">
-      {/* Vertical line */}
-      <div className="absolute left-3 top-3 bottom-3 w-0.5 bg-gray-200"></div>
+    <div className="my-6">
+      <div className="flex items-center justify-between">
+        {steps.map((step, index) => {
+          const Icon = statusIcons[step.key] || FiCircle;
+          const isCompleted = index <= currentIndex;
+          const isCurrent = index === currentIndex;
 
-      <div className="space-y-6 relative">
-        {timeline.map((stage, index) => (
-          <div key={index} className="flex items-start">
-            <div className="relative z-10 flex items-center justify-center w-6 h-6 rounded-full bg-white">
+          return (
+            <div
+              key={step.key}
+              className="flex flex-col items-center flex-1 last:flex-none"
+            >
               <div
-                className={`w-4 h-4 rounded-full flex items-center justify-center ${getStageColor(stage.status)}`}
+                className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                  isCompleted
+                    ? "bg-green-500 text-white"
+                    : "bg-gray-200 text-gray-500"
+                } ${isCurrent ? "ring-2 ring-[#FF6600] ring-offset-2" : ""}`}
               >
-                {stage.status === "completed" && (
-                  <FiCheck className="text-white text-xs" />
-                )}
+                <Icon size={20} />
               </div>
-            </div>
-            <div className="ml-4 flex-1">
-              <div className="flex justify-between items-center">
-                <p className="font-medium capitalize">
-                  {stage.stage.replace(/_/g, " ")}
-                </p>
-                {stage.timestamp && (
-                  <span className="text-xs text-gray-500">
-                    {stage.timestamp}
-                  </span>
-                )}
-              </div>
-              <p className="text-sm text-gray-600">{stage.description}</p>
-              {stage.location && (
-                <p className="text-xs text-gray-400 mt-1">{stage.location}</p>
+              <span className="text-xs mt-2 text-center">{step.label}</span>
+              {index < steps.length - 1 && (
+                <div
+                  className={`absolute top-5 left-1/2 w-full h-0.5 -z-10 ${
+                    index < currentIndex ? "bg-green-500" : "bg-gray-200"
+                  }`}
+                  style={{ transform: "translateX(50%)" }}
+                />
               )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
+
+      {/* Status messages from events */}
+      {events && events.length > 0 && (
+        <div className="mt-6 space-y-3">
+          {events.map((event, idx) => (
+            <div key={idx} className="flex gap-3 text-sm">
+              <div className="w-5 text-gray-400">•</div>
+              <div>
+                <p className="text-gray-700">{event.message}</p>
+                <p className="text-xs text-gray-500">{event.timestamp}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
-}
+};
+
+export default OrderTimeline;
