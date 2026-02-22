@@ -1,14 +1,14 @@
 // app/compare/page.jsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { demoProducts } from "@/lib/demoProducts";
 import { FiX, FiPlus, FiShoppingCart, FiStar } from "react-icons/fi";
 
-export default function ComparePage() {
+function ComparePageInner() {
   const searchParams = useSearchParams();
   const ids = searchParams.get("ids")?.split(",") || [];
   const [products, setProducts] = useState([]);
@@ -294,5 +294,13 @@ export default function ComparePage() {
         </div>
       )}
     </main>
+  );
+}
+
+export default function ComparePage() {
+  return (
+    <Suspense>
+      <ComparePageInner />
+    </Suspense>
   );
 }
